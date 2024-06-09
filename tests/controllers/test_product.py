@@ -69,7 +69,7 @@ async def test_controller_patch_should_return_success(
     )
 
     content = response.json()
-
+    breakpoint()
     del content["created_at"]
     del content["updated_at"]
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
 from pydantic import UUID4
@@ -13,7 +14,10 @@ router = APIRouter(tags=["products"])
 async def post(
     body: ProductIn = Body(...), usecase: ProductUsecase = Depends()
 ) -> ProductOut:
-    return await usecase.create(body=body)
+    try:
+        return await usecase.create(body=body)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_303_SEE_OTHER,detail='Erro na inserção, verifique os dados')
 
 
 @router.get(path="/{id}", status_code=status.HTTP_200_OK)
@@ -34,11 +38,13 @@ async def query(usecase: ProductUsecase = Depends()) -> List[ProductOut]:
 @router.patch(path="/{id}", status_code=status.HTTP_200_OK)
 async def patch(
     id: UUID4 = Path(alias="id"),
-    body: ProductUpdate = Body(...),
+    body: ProductUpdate = Body(...,updated_at=datetime.utcnow()),
     usecase: ProductUsecase = Depends(),
 ) -> ProductUpdateOut:
-    return await usecase.update(id=id, body=body)
-
+    try:
+        return await usecase.update(id=id, body=body)
+    except NotFoundException as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
 
 @router.delete(path="/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete(
