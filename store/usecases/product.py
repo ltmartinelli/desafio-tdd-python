@@ -28,8 +28,14 @@ class ProductUsecase:
 
         return ProductOut(**result)
 
-    async def query(self) -> List[ProductOut]:
-        return [ProductOut(**item) async for item in self.collection.find()]
+    async def query(self,minPrice:float,maxPrice:float) -> List[ProductOut]:
+
+        if not maxPrice:
+            query = {"price": {"$gt": minPrice}}
+        else:
+            query = {"price": {"$gt": minPrice, "$lt": maxPrice}}
+
+        return [ProductOut(**item) async for item in self.collection.find(query)]
 
     async def update(self, id: UUID, body: ProductUpdate) -> ProductUpdateOut:
         result = await self.collection.find_one_and_update(

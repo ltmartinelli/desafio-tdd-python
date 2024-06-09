@@ -12,17 +12,17 @@ router = APIRouter(tags=["products"])
 
 @router.post(path="/", status_code=status.HTTP_201_CREATED)
 async def post(
-    body: ProductIn = Body(...), usecase: ProductUsecase = Depends()
+        body: ProductIn = Body(...), usecase: ProductUsecase = Depends()
 ) -> ProductOut:
     try:
         return await usecase.create(body=body)
     except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_303_SEE_OTHER,detail='Erro na inserção, verifique os dados')
+        raise HTTPException(status_code=status.HTTP_303_SEE_OTHER, detail='Erro na inserção, verifique os dados')
 
 
 @router.get(path="/{id}", status_code=status.HTTP_200_OK)
 async def get(
-    id: UUID4 = Path(alias="id"), usecase: ProductUsecase = Depends()
+        id: UUID4 = Path(alias="id"), usecase: ProductUsecase = Depends()
 ) -> ProductOut:
     try:
         return await usecase.get(id=id)
@@ -31,24 +31,25 @@ async def get(
 
 
 @router.get(path="/", status_code=status.HTTP_200_OK)
-async def query(usecase: ProductUsecase = Depends()) -> List[ProductOut]:
-    return await usecase.query()
+async def query(minPrice: float = 0, maxPrice: float = 0,usecase: ProductUsecase = Depends()) -> List[ProductOut]:
+    return await usecase.query(minPrice,maxPrice)
 
 
 @router.patch(path="/{id}", status_code=status.HTTP_200_OK)
 async def patch(
-    id: UUID4 = Path(alias="id"),
-    body: ProductUpdate = Body(...,updated_at=datetime.utcnow()),
-    usecase: ProductUsecase = Depends(),
+        id: UUID4 = Path(alias="id"),
+        body: ProductUpdate = Body(..., updated_at=datetime.utcnow()),
+        usecase: ProductUsecase = Depends(),
 ) -> ProductUpdateOut:
     try:
         return await usecase.update(id=id, body=body)
     except NotFoundException as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
 
+
 @router.delete(path="/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete(
-    id: UUID4 = Path(alias="id"), usecase: ProductUsecase = Depends()
+        id: UUID4 = Path(alias="id"), usecase: ProductUsecase = Depends()
 ) -> None:
     try:
         await usecase.delete(id=id)
